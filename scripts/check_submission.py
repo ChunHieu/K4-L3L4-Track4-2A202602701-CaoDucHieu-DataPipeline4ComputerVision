@@ -26,8 +26,18 @@ def check(level, name, detail=""):
     results.append((level, name, detail))
 
 
+import os
+import shutil
+
 def sh(*cmd):
-    return subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    env = dict(os.environ)
+    if sys.platform == "win32" and cmd and cmd[0].endswith(".sh"):
+        env["MSYS_NO_PATHCONV"] = "1"
+        git_bash = r"C:\Program Files\Git\bin\bash.exe"
+        bash = git_bash if os.path.exists(git_bash) else (shutil.which("bash") or "")
+        if os.path.exists(bash):
+            return subprocess.run([bash] + list(cmd), cwd=ROOT, capture_output=True, text=True, env=env)
+    return subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=env)
 
 
 def sha(p: Path) -> str:
